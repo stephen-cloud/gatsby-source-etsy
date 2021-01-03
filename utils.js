@@ -67,8 +67,34 @@ async function getListingsRecursively(
   return [...results, ...nextResults]
 }
 
+async function getShop(shop_id, api_key, etsyFetch) {
+  const queryObject = {
+    api_key: api_key,
+  }
+  const query = querystring.stringify(queryObject)
+  const { results } = await etsyFetch(
+    `${ETSY_BASE_URL}/shops/${shop_id}?${query}`
+  ).then(res => res.json())
+
+  return results
+}
+
+async function getAboutShop(shop_id, api_key, etsyFetch) {
+  const queryObject = {
+    api_key: api_key,
+  }
+  const query = querystring.stringify(queryObject)
+  const { results } = await etsyFetch(
+    `${ETSY_BASE_URL}/shops/${shop_id}/about?${query}`
+  ).then(res => res.json())
+
+  return results
+}
+
 module.exports = {
   asyncForEach,
   createThrottledFetch,
   getListingsRecursively,
+  getShop,
+  getAboutShop
 }

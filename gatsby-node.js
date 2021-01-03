@@ -1,5 +1,10 @@
 const { createRemoteFileNode } = require('gatsby-source-filesystem')
-const { createThrottledFetch, getListingsRecursively } = require('./utils')
+const {
+  createThrottledFetch,
+  getListingsRecursively,
+  getShop,
+  getAboutShop,
+} = require('./utils')
 const { ETSY_BASE_URL, ETSY_FETCH_CONFIG } = require('./constants')
 
 exports.sourceNodes = async (
@@ -111,5 +116,36 @@ exports.sourceNodes = async (
       cachedImageNodeIds: imageNodeIds,
     })
   })
-  return Promise.all(listingProcessingJobs)
+
+  // Process shop data
+  const shopData = await getShop(shop_id, api_key, etsyFetch)
+
+  shopProcessingJob = await createNode({
+    id: shop_id,
+    parent: null,
+    internal: {
+      type: 'EtsyStore',
+      contentDigest: createContentDigest(shopData),
+    },
+    data: shopData,
+  })
+
+  // Process about data
+  const aboutShopData = await getAboutShop(shop_id, api_key, etsyFetch)
+
+  const aboutShopProcessingJob = await createNode({
+    id: `about-${shop_id}`,
+    parent: null,
+    internal: {
+      type: 'AboutEtsyStore',
+      contentDigest: createContentDigest(aboutShopData),
+    },
+    data: aboutShopData,
+  })
+
+  return Promise.all(
+    listingProcessingJobs,
+    shopProcessingJob,
+    aboutShopProcessingJob
+  )
 }
